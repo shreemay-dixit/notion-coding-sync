@@ -1,10 +1,12 @@
 import requests
 from datetime import datetime
 
-# 🔐 Your credentials (hardcoded — for testing only)
-NOTION_TOKEN = "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"
-NOTION_DB_ID = "20fa48fc3c2980d1b19cd3c119286cd5"
-LEETCODE_USERNAME = "shreemaydixit"
+import os
+
+NOTION_TOKEN = os.getenv("NOTION_TOKEN")
+NOTION_DB_ID = os.getenv("NOTION_DB_ID")
+LEETCODE_USERNAME = os.getenv("LEETCODE_USERNAME")
+
 
 def fetch_leetcode_stats(username):
     url = f"https://leetcode-stats-api.herokuapp.com/{username}"

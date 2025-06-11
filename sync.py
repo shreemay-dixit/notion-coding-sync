@@ -1,42 +1,70 @@
-# sync.py
-:contentReference[oaicite:13]{index=13}
-:contentReference[oaicite:14]{index=14}
-:contentReference[oaicite:15]{index=15}
+import requests
+from datetime import datetime
 
-# Load secrets from .env
-load_dotenv()
-:contentReference[oaicite:16]{index=16}
-:contentReference[oaicite:17]{index=17}
-:contentReference[oaicite:18]{index=18}
-HEADERS = {
-    :contentReference[oaicite:19]{index=19}
-    :contentReference[oaicite:20]{index=20}
-    :contentReference[oaicite:21]{index=21}
-}
+# 🔐 Your credentials (hardcoded — for testing only)
+NOTION_TOKEN = "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"
+NOTION_DB_ID = "20fa48fc3c2980d1b19cd3c119286cd5"
+LEETCODE_USERNAME = "shreemaydixit"
 
-:contentReference[oaicite:22]{index=22}
-    :contentReference[oaicite:23]{index=23}
-    :contentReference[oaicite:24]{index=24}
+def fetch_leetcode_stats(username):
+    url = f"https://leetcode-stats-api.herokuapp.com/{username}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return {
+            "total_solved": data["totalSolved"],
+            "easy": data["easySolved"],
+            "medium": data["mediumSolved"],
+            "hard": data["hardSolved"]
+        }
+    else:
+        raise Exception(f"Failed to fetch stats from LeetCode. HTTP {response.status_code}")
 
-:contentReference[oaicite:25]{index=25}
-    :contentReference[oaicite:26]{index=26}
+def send_to_notion(stats):
+    url = "https://api.notion.com/v1/pages"
+    headers = {
+        "Authorization": f"Bearer {NOTION_TOKEN}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+
     payload = {
-        :contentReference[oaicite:27]{index=27}
+        "parent": {"database_id": NOTION_DB_ID},
         "properties": {
-            :contentReference[oaicite:28]{index=28}
-            :contentReference[oaicite:29]{index=29}
-            :contentReference[oaicite:30]{index=30}
-            :contentReference[oaicite:31]{index=31}
-            :contentReference[oaicite:32]{index=32}
-            :contentReference[oaicite:33]{index=33}
+            "Date": {
+                "date": {
+                    "start": datetime.today().strftime("%Y-%m-%d")
+                }
+            },
+            "Platform": {
+                "select": {
+                    "name": "LeetCode"
+                }
+            },
+            "Total Solved": {
+                "number": stats["total_solved"]
+            },
+            "Easy": {
+                "number": stats["easy"]
+            },
+            "Medium": {
+                "number": stats["medium"]
+            },
+            "Hard": {
+                "number": stats["hard"]
+            }
         }
     }
-    :contentReference[oaicite:34]{index=34}
 
-:contentReference[oaicite:35]{index=35}
-    :contentReference[oaicite:36]{index=36}
-    if stats:
-        :contentReference[oaicite:37]{index=37}
-        :contentReference[oaicite:38]{index=38}
-    else:
-        :contentReference[oaicite:39]{index=39}
+    response = requests.post(url, json=payload, headers=headers)
+    print("Notion response:", response.status_code, response.text)
+
+def main():
+    try:
+        stats = fetch_leetcode_stats(LEETCODE_USERNAME)
+        send_to_notion(stats)
+    except Exception as e:
+        print("Error:", e)
+
+if __name__ == "__main__":
+    main()

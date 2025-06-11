@@ -1,1 +1,1 @@
-# notion-coding-sync
+Personalised Notion Progress databse
